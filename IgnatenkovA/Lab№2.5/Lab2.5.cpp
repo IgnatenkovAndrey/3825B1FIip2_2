@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cmath>
 
 using std::cout;
 using std::cin;
@@ -11,15 +12,24 @@ private:
 
 public:
 	Darray() : size(0), data(nullptr) {}
-	Darray(int sz) : size(sz), data(new double[sz]) {
+	Darray(int sz) : size(0), data(nullptr) {
+		if (sz < 0) {
+			cerr << "size cannot be negative.\n";
+			return;
+		}
+		if (sz == 0) return;
+		size = sz;
+		data = new double[sz];
 		for (int i = 0; i < sz; ++i) {
-			data[i] = 0;
+			data[i] = 0.0;
 		}
 	}
 	~Darray() {
 		delete[] data;
 	}
-	Darray(const Darray& other) : size(other.size), data(new double[other.size]) {
+	Darray(const Darray& other) : size(other.size), data(nullptr) {
+		if (size == 0) return;
+		data = new double[size];
 		for (int i = 0; i < size; ++i) {
 			data[i] = other.data[i];
 		}
@@ -28,6 +38,9 @@ public:
 		if (this != &other) {
 			delete[] data;
 			size = other.size;
+			data = nullptr;
+			if (size == 0) return *this;
+
 			data = new double[size];
 			for (int i = 0; i < size; ++i) {
 				data[i] = other.data[i];
@@ -44,6 +57,12 @@ public:
 			return;
 		}
 		if (newSize == size) return;
+		if (newSize == 0) {
+			delete[] data;
+			data = nullptr;
+			size = 0;
+			return;
+		}
 		double* newData = new double[newSize];
 		int limit = (size < newSize) ? size : newSize;
 		for (int i = 0; i < limit; ++i) {
@@ -59,7 +78,7 @@ public:
 	double getElement(int index) const {
 		if (index < 0 || index >= size) {
 			cerr << "Error: index out of range.\n";
-			return 0.0;
+			return NAN;
 		}
 		return data[index];
 	}
@@ -73,7 +92,7 @@ public:
 	double getMin() const {
 		if (size == 0) {
 			cerr << "Error: cannot find min in empty array.\n";
-			return 0.0;
+			return NAN;
 		}
 		double minVal = data[0];
 		for (int i = 1; i < size; ++i) {
@@ -119,7 +138,6 @@ public:
 int main() {
 	Darray arr(0);
 	int choice;
-
 	while (true) {
 		cout << "1. Set array size\n";
 		cout << "2. Get array size\n";
@@ -143,9 +161,7 @@ int main() {
 			int sz;
 			cout << "Enter new size: ";
 			if (cin >> sz) arr.setSize(sz);
-			else {
-				cin.clear(); cin.ignore(32767, '\n');
-			}
+			else { cin.clear(); cin.ignore(32767, '\n'); }
 			break;
 		}
 		case 2: {
@@ -156,26 +172,24 @@ int main() {
 			int idx; double val;
 			cout << "Enter index and value: ";
 			if (cin >> idx >> val) arr.setElement(idx, val);
-			else {
-				cin.clear(); cin.ignore(32767, '\n');
-			}
+			else { cin.clear(); cin.ignore(32767, '\n'); }
 			break;
 		}
 		case 4: {
 			int idx;
 			cout << "Enter index: ";
 			if (cin >> idx) cout << "Value at index " << idx << ": " << arr.getElement(idx) << "\n";
-			else {
-				cin.clear(); cin.ignore(32767, '\n');
-			}
+			else { cin.clear(); cin.ignore(32767, '\n'); }
 			break;
 		}
 		case 5: {
-			cout << "Minimum element: " << arr.getMin() << "\n";
+			double m = arr.getMin();
+			if (std::isnan(m)) cout << "Array is empty.\n";
+			else cout << "Minimum element: " << m << "\n";
 			break;
 		}
 		case 6: {
-			cout << "is the array sorted? " << (arr.isSorted() ? "Yes" : "No") << "\n";
+			cout << "Is the array sorted? " << (arr.isSorted() ? "Yes" : "No") << "\n";
 			break;
 		}
 		case 7: {
